@@ -29,7 +29,7 @@ public class ContactList extends Fragment implements
 
     @SuppressLint("InlinedApi")
     private final static String[] FROM_COLUMNS = {
-            ContactsContract.Contacts.DISPLAY_NAME_PRIMARY
+            ContactsContract.Contacts.DISPLAY_NAME_PRIMARY, ContactsContract.Contacts.PHOTO_URI
     };
     /*
      * Defines an array that contains resource ids for the layout views
@@ -37,7 +37,7 @@ public class ContactList extends Fragment implements
      * the Android framework, so it is prefaced with "android.R.id"
      */
     private final static int[] TO_IDS = {
-            android.R.id.text1
+            R.id.DisplayName, R.id.PhotoUri
     };
     // Define global mutable variables
     // Define a ListView object
@@ -102,7 +102,6 @@ public class ContactList extends Fragment implements
     }
 
     private void setupCursorAdapter() {
-        Log.d("qqq","mila");// Gets the ListView from the View list of the parent activity
 
         // Gets a CursorAdapter
         cursorAdapter = new SimpleCursorAdapter(getActivity(),R.layout.contacts_list_item,null,FROM_COLUMNS, TO_IDS,0);
