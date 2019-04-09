@@ -1,10 +1,8 @@
 package com.example.myapplication;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -12,79 +10,34 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.provider.ContactsContract;
-import android.widget.AdapterView;
-import android.widget.EditText;
+import android.widget.CursorAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
 
 
 public class ContactList extends Fragment implements
-        LoaderManager.LoaderCallbacks<Cursor>,
-        AdapterView.OnItemClickListener {
-
-    @SuppressLint("InlinedApi")
-    private final static String[] FROM_COLUMNS = {
-            ContactsContract.Contacts.DISPLAY_NAME_PRIMARY, ContactsContract.Contacts.PHOTO_URI
-    };
-    /*
-     * Defines an array that contains resource ids for the layout views
-     * that get the Cursor column contents. The id is pre-defined in
-     * the Android framework, so it is prefaced with "android.R.id"
-     */
-    private final static int[] TO_IDS = {
-            R.id.DisplayName, R.id.PhotoUri
-    };
-    // Define global mutable variables
+        LoaderManager.LoaderCallbacks<Cursor>
+         {
     // Define a ListView object
     ListView contactsList;
     // Define variables for the contact the user selects
-    // The contact's _ID value
-    long contactId;
-    // The contact's LOOKUP_KEY
-    String contactKey;
-    // A content URI for the selected contact
-    Uri contactUri;
-    // An adapter that binds the result Cursor to the ListView
-    private SimpleCursorAdapter cursorAdapter;
-    public static final int CONTACT_LOADER_ID = 78;
 
-    private static final String[] PROJECTION =
-            {
-                    ContactsContract.Data._ID,
-                    ContactsContract.Data.MIMETYPE,
-                    ContactsContract.Data.DATA1,
-                    ContactsContract.Data.DATA2,
-                    ContactsContract.Data.DATA3,
-                    ContactsContract.Data.DATA4,
-                    ContactsContract.Data.DATA5,
-                    ContactsContract.Data.DATA6,
-                    ContactsContract.Data.DATA7,
-                    ContactsContract.Data.DATA8,
-                    ContactsContract.Data.DATA9,
-                    ContactsContract.Data.DATA10,
-                    ContactsContract.Data.DATA11,
-                    ContactsContract.Data.DATA12,
-                    ContactsContract.Data.DATA13,
-                    ContactsContract.Data.DATA14,
-                    ContactsContract.Data.DATA15
-            };
-
-
+    // A custom adapter that binds the result Cursor to the ListView
+    private ContactsAdapter cursorAdapter;
+    public static final int CONTACT_LOADER_ID = 0;
 
     public ContactList() {
         // Required empty public constructor
     }
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
 
     @Override
@@ -104,11 +57,10 @@ public class ContactList extends Fragment implements
     private void setupCursorAdapter() {
 
         // Gets a CursorAdapter
-        cursorAdapter = new SimpleCursorAdapter(getActivity(),R.layout.contacts_list_item,null,FROM_COLUMNS, TO_IDS,0);
-        // Sets the adapter for the ListView
+        cursorAdapter = new ContactsAdapter(getActivity());
         contactsList = getActivity().findViewById(R.id.contacts_list_view);
+        // Sets the adapter for the ListView
         contactsList.setAdapter(cursorAdapter);
-        contactsList.setOnItemClickListener(this);
     }
 
     @Override
@@ -120,23 +72,20 @@ public class ContactList extends Fragment implements
     @Override
     public Loader<Cursor> onCreateLoader(int i, @Nullable Bundle bundle) {
 
-        String[] projectionFields = new String[] { ContactsContract.Contacts._ID,
+        String [] projection = {ContactsContract.Contacts._ID,
+                ContactsContract.Contacts.LOOKUP_KEY,
                 ContactsContract.Contacts.DISPLAY_NAME,
-                ContactsContract.Contacts.PHOTO_URI };
+                ContactsContract.Contacts.PHOTO_THUMBNAIL_URI};
 
-        CursorLoader loader = new CursorLoader(
-                this.getActivity(),
-                ContactsContract.Contacts.CONTENT_URI,
-                projectionFields,
+        return new CursorLoader(this.getActivity(), ContactsContract.Contacts.CONTENT_URI,
+                projection,
                 null,
                 null,
-                ContactsContract.Contacts.DISPLAY_NAME);
-        return loader;
+                ContactsContract.Contacts.DISPLAY_NAME + " ASC");
     }
 
     @Override
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor cursor) {
-
         cursorAdapter.swapCursor(cursor);
     }
 
@@ -145,27 +94,89 @@ public class ContactList extends Fragment implements
         cursorAdapter.swapCursor(null);
     }
 
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+    private static class ContactsAdapter extends CursorAdapter
+    {
+        private int IndexLookupKey;
+        private int IndexDisplayName;
+        private int IndexPhotoUri;
+        Context mContext;
 
-    /*    Cursor cursor = parent.getAdapter().getCursor();
-        // Move to the selected contact
-        cursor.moveToPosition(position);
-        // Get the _ID value
-        contactId = cursor.getLong(CONTACT_ID_INDEX);
-        // Get the selected LOOKUP KEY
-        contactKey = cursor.getString(CONTACT_KEY_INDEX);
-        // Create the contact's content Uri
-        contactUri = ContactsContract.Contacts.getLookupUri(contactId, mContactKey);
-        /*
-         * You can use contactUri as the content URI for retrieving
-         * the details for a contact.
-         */
 
-    }
+        public ContactsAdapter(Context context)
+        {
+            super(context, null, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
+            mContext=context;
+        }
 
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+        @Override
+        public Cursor swapCursor(Cursor newCursor)
+        {
+            if(newCursor != null){
+                IndexLookupKey   = newCursor.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY);
+                IndexDisplayName = newCursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME);
+                IndexPhotoUri    = newCursor.getColumnIndex(ContactsContract.Contacts.PHOTO_THUMBNAIL_URI);
+            }
+            return super.swapCursor(newCursor);
+        }
+
+        @Override
+        public View newView(Context context, Cursor cursor, ViewGroup parent)
+        {
+            return ViewHolder.create(parent,mContext);
+        }
+
+        @Override
+        public void bindView(View view, Context context, Cursor cursor)
+        {
+            final String lookupKey   = cursor.getString(IndexLookupKey);
+            final String displayName = cursor.getString(IndexDisplayName);
+            final String photoUri    = cursor.getString(IndexPhotoUri);
+
+            ViewHolder.get(view).bind(displayName, photoUri,
+                    Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, lookupKey));
+        }
+
+        private static class ViewHolder
+        {
+            private ViewGroup mLayout;
+            private ImageView mContactPhoto;
+            private TextView mContactName;
+            private Uri       mLookupUri;
+            static Context mContext;
+
+
+            public static final ViewGroup create(ViewGroup parent, Context context)
+            {
+                mContext = context;
+                return new ViewHolder(parent).mLayout;
+            }
+
+            public static final ViewHolder get(View parent)
+            {
+                return (ViewHolder)parent.getTag();
+            }
+
+            private ViewHolder(ViewGroup parent)
+            {
+                Context context = parent.getContext();
+                mLayout = (ViewGroup)LayoutInflater.from(context).inflate(R.layout.contacts_list_item, parent, false);
+                mLayout.setTag(this);
+                mContactPhoto = mLayout.findViewById(R.id.PhotoUri);
+                mContactName  = mLayout.findViewById(R.id.DisplayName);
+            }
+
+            public void bind(String displayName, String photoUri, Uri lookupUri)
+            {
+                if(photoUri != null){
+                    mContactPhoto.setImageURI(Uri.parse(photoUri));
+                }else{
+                    mContactPhoto.setImageDrawable(mContext.getResources().getDrawable(R.drawable.contactimage));
+                }
+                mContactName.setText(displayName);
+                mLookupUri = lookupUri;
+            }
+
+
+        }
     }
 }
