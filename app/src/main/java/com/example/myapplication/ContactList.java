@@ -136,7 +136,7 @@ public class ContactList extends Fragment implements
                     Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, lookupKey));
         }
 
-        private static class ViewHolder
+        private static class ViewHolder implements View.OnClickListener
         {
             private ViewGroup mLayout;
             private ImageView mContactPhoto;
@@ -160,6 +160,7 @@ public class ContactList extends Fragment implements
             {
                 Context context = parent.getContext();
                 mLayout = (ViewGroup)LayoutInflater.from(context).inflate(R.layout.contacts_list_item, parent, false);
+                mLayout.setOnClickListener(this);
                 mLayout.setTag(this);
                 mContactPhoto = mLayout.findViewById(R.id.PhotoUri);
                 mContactName  = mLayout.findViewById(R.id.DisplayName);
@@ -176,7 +177,12 @@ public class ContactList extends Fragment implements
                 mLookupUri = lookupUri;
             }
 
-
+            @Override
+            public void onClick(View v)
+            {
+                ContactsContract.QuickContact.showQuickContact(v.getContext(),
+                        v, mLookupUri, ContactsContract.QuickContact.MODE_MEDIUM, null);
+            }
         }
     }
 }
