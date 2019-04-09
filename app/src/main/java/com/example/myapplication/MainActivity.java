@@ -27,7 +27,7 @@ public class MainActivity extends FragmentActivity {
         Fragment contactFragment = new ContactList();
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction
-                .replace(R.id.container, contactFragment) //<---replace a view in your layout (id: container) with the newFragment
+                .replace(R.id.container, contactFragment)
                 .commit();
     }
 
@@ -36,7 +36,6 @@ public class MainActivity extends FragmentActivity {
 
             if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.READ_CONTACTS)) {
                 Toast.makeText(getApplicationContext(), "Contact Read permission denied! Please grant Contact Read permission from seting to access phone book", Toast.LENGTH_LONG).show();
-                Log.d("PHONEBOOK_SAMPLE", "Contact Read permission denied! Please grant Contact Read permission from seting to access phone book");
             } else {
                 ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, MY_PERMISSIONS_REQUEST_READ_CONTACTS);
             }
@@ -53,7 +52,6 @@ public class MainActivity extends FragmentActivity {
                    createFragment();
                 } else {
                     Toast.makeText(getApplicationContext(), "Contact Read permission not granted yet! Please grant Contact Read permission to access phone book", Toast.LENGTH_LONG).show();
-                    Log.d("PHONEBOOK_SAMPLE", "Contact Read permission not granted yet! Please grant Contact Read permission to access phone book");
                 }
                 return;
             }
